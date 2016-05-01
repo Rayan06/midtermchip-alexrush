@@ -1,28 +1,12 @@
-/* 
- Touch Shield Example using the MPR121 touch sensor IC 
 
- by: Aaron Weiss, based on the MPR121 Keypad Example by Jim Lindblom
-     
- SparkFun Electronics
- created on: 5/12/11
- license: OSHW 1.0, http://freedomdefined.org/OSHW
- 
- Pressing a pad will print the corresponding number.
- 
- Hardware: 3.3V or 5V Arduino
-
- Notes: The Wiring library is not used for I2C, a default atmel I2C lib
-        is used. Be sure to keep the .h files with the project. 
-*/
-
-// include the atmel I2C libs
+// On inclus les bibliothéques I2C et mpr121
 #include "mpr121.h"
 #include "i2c.h"
 
-// 11 max digits used
+// 11 digits (chiffes) max
 #define DIGITS 11 
 
-// Match key inputs with electrode numbers
+// Assemblage des variable avec le numéro des électrodes
 #define ONE 8
 #define TWO 5
 #define THREE 2
@@ -33,17 +17,17 @@
 #define EIGHT 3
 #define NINE 0
 
-//extras (not used)
+//Extras (on ne l'utilise pas )
 #define ELE9 9
 #define ELE10 10
 #define ELE11 11
 
 
 
-//interupt pin
+
 int irqpin = 2;  // D2
 
-//Enter the Code
+//Entré du code
 char MyCode[] = {'1', '2', '3', '4'}; //<===================================PASSWORD
 char Pressed[] = {'15', '15', '15', '15'};
 
@@ -52,39 +36,33 @@ boolean Code = false;
 boolean flashing = false;
 void setup()
 {
-  //make sure the interrupt pin is an input and pulled high
+ 
  pinMode(irqpin, INPUT);
- pinMode(3, OUTPUT);
- pinMode(4, OUTPUT);
  pinMode(5, OUTPUT);
  pinMode(6, OUTPUT);
- pinMode(7, OUTPUT);
- pinMode(8, OUTPUT);
- pinMode(9, OUTPUT);
- pinMode(10, OUTPUT);
- pinMode(11, OUTPUT); 
+
   digitalWrite(irqpin, HIGH);
   
-  //configure serial out
+  //configuration en série 
   Serial.begin(9600);
   
-  //output on ADC4 (PC4, SDA)
+  //Sortie en A4 A5 
   DDRC |= 0b00010011;
-  // Pull-ups on I2C Bus
+ 
   PORTC = 0b00110000; 
-  // initalize I2C bus. Wiring lib not used. 
+  //Initialisation du bus i2c 
   i2cInit();
   
   delay(100);
-  // initialize mpr121
+  // Initialisation du mpr121 
   mpr121QuickConfig();
   
   // Create and interrupt to trigger when a button
   // is hit, the IRQ pin goes low, and the function getNumber is run. 
   attachInterrupt(0,getNumber,LOW);
   
-  // prints 'Ready...' when you can start hitting numbers
-  Serial.println("Ready...");
+  // Affiche 'Veuillez entrez le code' quand on peut commencer a appuyer sur les touches 
+  Serial.println("Veuillez entrer le code");
 }
 
 void loop()
@@ -100,10 +78,10 @@ if((touchcount%4==0)&&(Code==false)&&(touchcount>0)){
   flashing = true;
   for (int i=0; i<4; i++){
       for (int i=0; i<9; i++)
-      digitalWrite(i+3, HIGH);
+      digitalWrite(6, HIGH);
       delay(1500);
       for (int i=0; i<9; i++)
-      digitalWrite(i+3, LOW);
+      digitalWrite(6, LOW);
       delay(1500);
       }
   touchcount=0;
@@ -111,18 +89,18 @@ if((touchcount%4==0)&&(Code==false)&&(touchcount>0)){
 }
       else if((touchcount%4==0)&&(Code==true)){
       for (int i=0; i<9; i++)
-      digitalWrite(i+3, HIGH);
+      digitalWrite(5, HIGH);
       }
 
 
 
 if(Code==true){
   for (int i=0; i<9; i++)
-digitalWrite(i+3, HIGH);
+digitalWrite(5, HIGH);
 }
 else{
 for (int i=0; i<9; i++)
-digitalWrite(i+3, LOW);
+digitalWrite(5, LOW);
 }
 }
 
@@ -136,9 +114,9 @@ void getNumber()
   char digits[DIGITS];
   
   touchstatus = mpr121Read(0x01) << 8;
-  touchstatus |= mpr121Read(0x00);
+  touchstatus = mpr121Read(0x00);
   
-  for (int j=0; j<12; j++)  // Check how many electrodes were pressed
+  for (int j=0; j<12; j++)  // Voir combien de touches viennent d'être
   {
     if ((touchstatus & (1<<j)))
       touchNumber++;
@@ -216,7 +194,7 @@ void getNumber()
  
     i++;
   }
-  //do nothing if more than one button is pressed
+  //ne rien faire si plus d'une touches sont appuyer en même temps
   else if (touchNumber == 0)
   
     ;
